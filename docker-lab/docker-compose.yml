@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+
+  # ── Service 1: Flask Web Application ─────────────────────────────────────
+  web:
+    build: .                         # Build from Dockerfile in current directory
+    container_name: flask_app
+    ports:
+      - "5000:5000"                  # localhost:5000 → container:5000
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/   # 'mongo' = hostname of the MongoDB container
+    depends_on:
+      - mongo                        # Start MongoDB before Flask
+    networks:
+      - app-network                  # Both containers share this network
+
+  # ── Service 2: MongoDB Database ───────────────────────────────────────────
+  mongo:
+    image: mongo:7.0                 # Official MongoDB image from Docker Hub
+    container_name: mongodb
+    ports:
+      - "27017:27017"                # Expose for optional local inspection
+    volumes:
+      - mongo-data:/data/db          # Persist data across container restarts
+    networks:
+      - app-network
+
+# ── Named Network ─────────────────────────────────────────────────────────────
+networks:
+  app-network:
+    driver: bridge                   # Default bridge network for container communication
+
+# ── Named Volume ──────────────────────────────────────────────────────────────
+volumes:
+  mongo-data:
